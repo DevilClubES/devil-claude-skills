@@ -1,0 +1,20 @@
+{
+  "name": "devil-claude-skills",
+  "description": "Skills curated by Devil Club for Claude Code: design, UX, accessibility, research.",
+  "owner": {
+    "name": "Devil Club",
+    "email": "edgar.ondono@gmail.com"
+  },
+  "plugins": [
+    {
+      "name": "design-skills",
+      "description": "Seven standalone skills for design work in Claude Code: design-critique, design-system, design-handoff, accessibility-review, ux-copy, user-research, research-synthesis.",
+      "author": {
+        "name": "Devil Club"
+      },
+      "category": "design",
+      "source": "./plugins/design-skills",
+      "homepage": "https://github.com/DevilClubES/devil-claude-skills"
+    }
+  ]
+}
