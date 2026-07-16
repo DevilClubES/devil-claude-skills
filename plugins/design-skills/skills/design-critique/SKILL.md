@@ -4,7 +4,7 @@ description: Get structured design feedback on usability, hierarchy, and consist
 argument-hint: "<Figma URL, screenshot, or description>"
 ---
 
-# /design-critique
+# /design-skills:design-critique
 
 > If you see unfamiliar placeholders or need to check which tools are connected, see [CONNECTORS.md](../../CONNECTORS.md).
 
@@ -13,10 +13,10 @@ Get structured design feedback across multiple dimensions.
 ## Usage
 
 ```
-/design-critique $ARGUMENTS
+/design-skills:design-critique $ARGUMENTS
 ```
 
-Review the design: @$1
+Review the design: $ARGUMENTS
 
 If a Figma URL is provided, pull the design from Figma. If a file is referenced, read it. Otherwise, ask the user to describe or share their design.
 

@@ -4,7 +4,7 @@ description: Generate developer handoff specs from a design. Use when a design i
 argument-hint: "<Figma URL or design description>"
 ---
 
-# /design-handoff
+# /design-skills:design-handoff
 
 > If you see unfamiliar placeholders or need to check which tools are connected, see [CONNECTORS.md](../../CONNECTORS.md).
 
@@ -13,10 +13,10 @@ Generate comprehensive developer handoff documentation from a design.
 ## Usage
 
 ```
-/design-handoff $ARGUMENTS
+/design-skills:design-handoff $ARGUMENTS
 ```
 
-Generate handoff specs for: @$1
+Generate handoff specs for: $ARGUMENTS
 
 If a Figma URL is provided, pull the design from Figma. Otherwise, work from the provided description or screenshot.
 

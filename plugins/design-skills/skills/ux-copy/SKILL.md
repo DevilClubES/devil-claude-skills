@@ -4,7 +4,7 @@ description: Write or review UX copy — microcopy, error messages, empty states
 argument-hint: "<context or copy to review>"
 ---
 
-# /ux-copy
+# /design-skills:ux-copy
 
 > If you see unfamiliar placeholders or need to check which tools are connected, see [CONNECTORS.md](../../CONNECTORS.md).
 
@@ -13,7 +13,7 @@ Write or review UX copy for any interface context.
 ## Usage
 
 ```
-/ux-copy $ARGUMENTS
+/design-skills:ux-copy $ARGUMENTS
 ```
 
 ## What I Need From You

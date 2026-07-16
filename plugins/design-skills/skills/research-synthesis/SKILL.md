@@ -4,7 +4,7 @@ description: Synthesize user research into themes, insights, and recommendations
 argument-hint: "<research data, transcripts, or survey results>"
 ---
 
-# /research-synthesis
+# /design-skills:research-synthesis
 
 > If you see unfamiliar placeholders or need to check which tools are connected, see [CONNECTORS.md](../../CONNECTORS.md).
 
@@ -13,7 +13,7 @@ Synthesize user research data into actionable insights. See the **user-research*
 ## Usage
 
 ```
-/research-synthesis $ARGUMENTS
+/design-skills:research-synthesis $ARGUMENTS
 ```
 
 ## What I Accept

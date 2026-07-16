@@ -4,7 +4,7 @@ description: Run a WCAG 2.1 AA accessibility audit on a design or page. Trigger 
 argument-hint: "<Figma URL, URL, or description>"
 ---
 
-# /accessibility-review
+# /design-skills:accessibility-review
 
 > If you see unfamiliar placeholders or need to check which tools are connected, see [CONNECTORS.md](../../CONNECTORS.md).
 
@@ -13,10 +13,10 @@ Audit a design or page for WCAG 2.1 AA accessibility compliance.
 ## Usage
 
 ```
-/accessibility-review $ARGUMENTS
+/design-skills:accessibility-review $ARGUMENTS
 ```
 
-Audit for accessibility: @$1
+Audit for accessibility: $ARGUMENTS
 
 ## WCAG 2.1 AA Quick Reference
 

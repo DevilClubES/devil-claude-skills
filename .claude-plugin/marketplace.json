@@ -8,7 +8,8 @@
   "plugins": [
     {
       "name": "design-skills",
-      "description": "Seven standalone skills for design work in Claude Code: design-critique, design-system, design-handoff, accessibility-review, ux-copy, user-research, research-synthesis.",
+      "description": "Seven design skills for Claude Code, including evidence-based DESIGN.md capture and validation.",
+      "version": "1.0.0",
       "author": {
         "name": "Devil Club"
       },
