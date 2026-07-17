@@ -1,7 +1,7 @@
 {
   "name": "design-skills",
-  "description": "Seven design skills for Claude Code, including evidence-based DESIGN.md capture and validation.",
-  "version": "1.0.0",
+  "description": "Eight design skills for Claude Code, including an evidence-based design studio and DESIGN.md validation.",
+  "version": "1.1.0",
   "author": {
     "name": "Devil Club"
   }
