@@ -1,118 +1,119 @@
 ---
 name: design-critique
-description: Get structured design feedback on usability, hierarchy, and consistency. Trigger with "review this design", "critique this mockup", "what do you think of this screen?", or when sharing a Figma link or screenshot for feedback at any stage from exploration to final polish.
-argument-hint: "<Figma URL, screenshot, or description>"
+description: Review a design through structured UX, visual-craft, brand/system, accessibility/content, and implementation lenses. Use for "review this design", "critique this mockup", "what do you think of this screen?", design comparisons, pre-handoff feedback, or an evidence-backed ready/revise/blocked verdict from a Figma link, screenshot, artifact, or running page.
+argument-hint: "<design, context, and optional focus>"
 ---
 
 # /design-skills:design-critique
 
-> If you see unfamiliar placeholders or need to check which tools are connected, see [CONNECTORS.md](../../CONNECTORS.md).
+> For optional connector placeholders and fallback behavior, see [CONNECTORS.md](../../CONNECTORS.md).
 
-Get structured design feedback across multiple dimensions.
+Give direct, stage-appropriate feedback grounded in the visible artifact and its product context.
 
 ## Usage
 
-```
+```text
 /design-skills:design-critique $ARGUMENTS
 ```
 
-Review the design: $ARGUMENTS
+If a design URL is provided, inspect the linked surface with an available connector or browser. If a file is referenced, read or render it. If no reviewable artifact is available, ask the user to share one or explicitly limit the critique to the supplied description.
 
-If a Figma URL is provided, pull the design from Figma. If a file is referenced, read it. Otherwise, ask the user to describe or share their design.
+Do not modify files during a critique. Move into implementation only when the user separately asks to fix, refine, or build.
 
-## What I Need From You
+## Evidence Rules
 
-- **The design**: Figma URL, screenshot, or detailed description
-- **Context**: What is this? Who is it for? What stage (exploration, refinement, final)?
-- **Focus** (optional): "Focus on mobile" or "Focus on the onboarding flow"
+1. Prefer the running artifact over source code, source code over a static screenshot, and a screenshot over prose.
+2. Inspect the relevant breakpoint and state; do not generalize a desktop happy path to mobile, error, or keyboard behavior.
+3. Separate observations from inferences. Never report an untested behavior as verified.
+4. Compare against the project's actual `DESIGN.md`, tokens, and components when available.
+5. Tie every negative finding to user impact, product intent, or an established system rule.
+6. Do not fabricate independent reviewers. When one agent applies several perspectives, call it a structured multi-lens review.
 
-## Critique Framework
+## Match the Stage
 
-### 1. First Impression (2 seconds)
-- What draws the eye first? Is that correct?
-- What's the emotional reaction?
-- Is the purpose immediately clear?
+- `Exploration`: prioritize concept, audience fit, structure, and direction. Avoid pixel-level polish lists.
+- `Refinement`: prioritize hierarchy, flows, components, responsive behavior, content, and system consistency.
+- `Final`: prioritize blockers, edge states, accessibility, implementation fidelity, and handoff readiness.
 
-### 2. Usability
-- Can the user accomplish their goal?
-- Is the navigation intuitive?
-- Are interactive elements obvious?
-- Are there unnecessary steps?
+If the stage is unknown, infer it from the artifact and say what you assumed.
 
-### 3. Visual Hierarchy
-- Is there a clear reading order?
-- Are the right elements emphasized?
-- Is whitespace used effectively?
-- Is typography creating the right hierarchy?
+## Five-Lens Jury
 
-### 4. Consistency
-- Does it follow the design system?
-- Are spacing, colors, and typography consistent?
-- Do similar elements behave similarly?
+Review through these lenses:
 
-### 5. Accessibility
-- Color contrast ratios
-- Touch target sizes
-- Text readability
-- Alternative text for images
+| Lens | Focus |
+|---|---|
+| Brief and UX fit | User job, task flow, clarity, navigation, primary action, unnecessary steps |
+| Visual craft | First impression, composition, hierarchy, typography, spacing, density, imagery, motion |
+| System and brand fit | Tokens, components, voice, consistency, recognizable product identity |
+| Accessibility and content integrity | Contrast, keyboard, focus, semantics, touch, reflow, honest claims, useful states and copy |
+| Implementation and responsiveness | Target breakpoints, overflow, loading/error/empty states, interaction reliability, technical fragility |
 
-## How to Give Feedback
+For normal feedback, use severity and evidence without numeric scoring. For readiness, comparison, or iterative refinement, score each lens from 0 to 5 and explain the score.
 
-- **Be specific**: "The CTA competes with the navigation" not "the layout is confusing"
-- **Explain why**: Connect feedback to design principles or user needs
-- **Suggest alternatives**: Don't just identify problems, propose solutions
-- **Acknowledge what works**: Good feedback includes positive observations
-- **Match the stage**: Early exploration gets different feedback than final polish
+When `../design-studio/references/quality-gates.md` is available and the user asks whether a design is ready, read it completely and apply its thresholds and blockers.
+
+## Critique Method
+
+1. State the artifact, context, stage, breakpoint, and evidence inspected.
+2. Give the two-second first impression: what attracts attention and whether that is correct.
+3. Identify the strongest product/design decision before listing problems.
+4. Review all five lenses, omitting only dimensions that genuinely cannot be evaluated.
+5. Rank findings by impact: `Critical`, `High`, `Medium`, or `Low`.
+6. Recommend the smallest concrete correction for each meaningful finding.
+7. End with exactly three priority changes unless fewer than three issues exist.
+
+Avoid vague feedback such as "make it cleaner" or "the layout feels off." Name the element, evidence, consequence, and specific correction.
+
+## Readiness Verdict
+
+Use one verdict when the user asks whether the work is final or ready:
+
+- `READY`: verified at required states and breakpoints, no blockers, and no material high-impact finding.
+- `REVISE`: direction is viable but meaningful issues remain.
+- `BLOCKED`: missing evidence or a critical UX, accessibility, content-integrity, system, or implementation blocker prevents a defensible readiness claim.
+
+Do not average away a blocker with a high aesthetic score.
 
 ## Output
 
 ```markdown
-## Design Critique: [Design Name]
+## Design Critique: [Name]
 
-### Overall Impression
-[1-2 sentence first reaction — what works, what's the biggest opportunity]
+**Verdict:** READY / REVISE / BLOCKED / NOT REQUESTED
+**Stage:** [assumed or supplied]
+**Evidence:** [artifact, breakpoint, states, sources]
 
-### Usability
-| Finding | Severity | Recommendation |
-|---------|----------|----------------|
-| [Issue] | 🔴 Critical / 🟡 Moderate / 🟢 Minor | [Fix] |
+### Overall
+[Direct first impression, strongest decision, and biggest opportunity]
 
-### Visual Hierarchy
-- **What draws the eye first**: [Element] — [Is this correct?]
-- **Reading flow**: [How does the eye move through the layout?]
-- **Emphasis**: [Are the right things emphasized?]
+### Findings
+| Severity | Lens | Evidence | User/product impact | Recommendation |
+|---|---|---|---|---|
+| Critical / High / Medium / Low | [lens] | [specific observation] | [impact] | [small concrete fix] |
 
-### Consistency
-| Element | Issue | Recommendation |
-|---------|-------|----------------|
-| [Typography/spacing/color] | [Inconsistency] | [Fix] |
+### Hierarchy and Flow
+- First focus: [element and whether correct]
+- Reading/task flow: [sequence]
+- Primary action: [clarity and competition]
 
-### Accessibility
-- **Color contrast**: [Pass/fail for key text]
-- **Touch targets**: [Adequate size?]
-- **Text readability**: [Font size, line height]
+### Accessibility and States
+- Contrast and focus: [verified result or limitation]
+- Keyboard and semantics: [verified result or limitation]
+- Responsive, loading, empty, and error behavior: [verified result or limitation]
 
-### What Works Well
-- [Positive observation 1]
-- [Positive observation 2]
+### What Works
+- [Specific strength]
+- [Specific strength]
 
-### Priority Recommendations
-1. **[Most impactful change]** — [Why and how]
-2. **[Second priority]** — [Why and how]
-3. **[Third priority]** — [Why and how]
+### Top Three Changes
+1. [Highest-impact change]
+2. [Second change]
+3. [Third change]
 ```
 
-## If Connectors Available
+For a readiness review, add the five lens scores, composite, blockers, and round from the Design Studio quality-gate contract.
 
-If **~~design tool** is connected:
-- Pull the design directly from Figma and inspect components, tokens, and layers
-- Compare against the existing design system for consistency
+## Optional Connectors
 
-If **~~user feedback** is connected:
-- Cross-reference design decisions with recent user feedback and support tickets
-
-## Tips
-
-1. **Share the context** — "This is a checkout flow for a B2B SaaS" helps me give relevant feedback.
-2. **Specify your stage** — Early exploration gets different feedback than final polish.
-3. **Ask me to focus** — "Just look at the navigation" gives you more depth on one area.
+When `~~design tool` is connected, inspect variables, component properties, layers, and representative frames. When `~~user feedback` or `~~knowledge base` is connected, use it only if retrieved in the current run. Otherwise continue from repository and user-provided evidence and state the limitation.
