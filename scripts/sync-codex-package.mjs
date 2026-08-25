@@ -96,7 +96,8 @@ async function listFiles(root) {
 }
 
 function transformRuntimeText(source) {
-  let result = source.replaceAll(".claude/design-studio.md", ".agents/design-studio.md");
+  let result = source.replaceAll("\r\n", "\n");
+  result = result.replaceAll(".claude/design-studio.md", ".agents/design-studio.md");
   result = result.replaceAll("${CLAUDE_SKILL_DIR}", "<design-system-skill-directory>");
   result = result.replaceAll("$ARGUMENTS", "the current request");
   for (const name of Object.keys(skillMetadata)) {
