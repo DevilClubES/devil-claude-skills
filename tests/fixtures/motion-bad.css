@@ -1,0 +1,4 @@
+.button {
+  transition: all 1.4s ease;
+  animation: pulse 2s infinite;
+}

@@ -1,0 +1,6 @@
+interface:
+  display_name: "Interface Variants"
+  short_description: "Create and compare three isolated UI variants"
+  default_prompt: "Use $variant to create three isolated UI variants and pause before promotion."
+policy:
+  allow_implicit_invocation: false

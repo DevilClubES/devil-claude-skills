@@ -1,0 +1,6 @@
+interface:
+  display_name: "User Research"
+  short_description: "Plan rigorous user research and test materials"
+  default_prompt: "Use $user-research to plan this study and create the required research materials."
+policy:
+  allow_implicit_invocation: true

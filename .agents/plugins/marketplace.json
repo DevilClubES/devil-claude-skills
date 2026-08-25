@@ -1,0 +1,20 @@
+{
+  "name": "devil-design-skills",
+  "interface": {
+    "displayName": "Devil Design Skills"
+  },
+  "plugins": [
+    {
+      "name": "design-skills-codex",
+      "source": {
+        "source": "local",
+        "path": "./plugins/design-skills-codex"
+      },
+      "policy": {
+        "installation": "AVAILABLE",
+        "authentication": "ON_INSTALL"
+      },
+      "category": "Developer Tools"
+    }
+  ]
+}

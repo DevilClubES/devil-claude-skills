@@ -1,0 +1,6 @@
+interface:
+  display_name: "Component Stress Test"
+  short_description: "Stress-test a component across edge states"
+  default_prompt: "Use $component-stress-test to exercise this component across its edge states."
+policy:
+  allow_implicit_invocation: false

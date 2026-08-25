@@ -1,10 +1,9 @@
 ---
 name: design-studio
 description: Run an end-to-end digital design loop from brief to verified implementation. Use for net-new or substantial web/app UI design, redesigns, visual direction exploration, production-ready interface builds, iterative refinement, selected-element tweaks, or any request that should connect design-system evidence, implementation, visual QA, critique, and handoff instead of producing a one-pass mockup.
-argument-hint: "[explore | build | critique | refine | tweak | ship] <brief or artifact>"
 ---
 
-# /design-skills:design-studio
+# Design Studio
 
 > For optional connector placeholders and fallback behavior, see [CONNECTORS.md](../../CONNECTORS.md).
 
@@ -13,12 +12,12 @@ Turn a design brief into a real, visually verified artifact while preserving the
 ## Usage
 
 ```text
-/design-skills:design-studio explore <brief>
-/design-skills:design-studio build <brief or approved direction>
-/design-skills:design-studio critique <artifact>
-/design-skills:design-studio refine <artifact and goal>
-/design-skills:design-studio tweak <selected element and requested change>
-/design-skills:design-studio ship <artifact>
+$design-studio explore <brief>
+$design-studio build <brief or approved direction>
+$design-studio critique <artifact>
+$design-studio refine <artifact and goal>
+$design-studio tweak <selected element and requested change>
+$design-studio ship <artifact>
 ```
 
 Treat an unqualified design request as `build`. Select a more specific mode when the user's wording makes it clear.
@@ -49,7 +48,7 @@ Treat an unqualified design request as `build`. Select a more specific mode when
 | Review, opinion, or audit only | Run `critique`; do not mutate files. |
 | User asks for plan only | Produce or update the design plan; do not create the final artifact. |
 
-Use the specialized installed skills when their trigger applies: `/design-skills:design-system` for the canonical system contract, `/design-skills:accessibility-review` for a WCAG audit, `/design-skills:ux-copy` for interface language, and `/design-skills:design-handoff` for an engineering spec. Keep this skill responsible for sequencing, convergence, implementation, and verification.
+Use the specialized installed skills when their trigger applies: `$design-system` for the canonical system contract, `$accessibility-review` for a WCAG audit, `$ux-copy` for interface language, and `$design-handoff` for an engineering spec. Keep this skill responsible for sequencing, convergence, implementation, and verification.
 
 ## End-to-End Workflow
 
@@ -93,9 +92,9 @@ Build an early v0 only when it resolves a costly uncertainty about macrostructur
 
 ### 3. Maintain durable project context
 
-Read `DESIGN.md` and `.claude/design-studio.md` when present.
+Read `DESIGN.md` and `.agents/design-studio.md` when present.
 
-For a mutating, multi-turn design effort, create or update `.claude/design-studio.md` after a direction or rule is accepted. Record only durable decisions, rejected approaches, current gaps, and recent outcomes. Do not create this file for a one-off critique or record speculative observations as decisions.
+For a mutating, multi-turn design effort, create or update `.agents/design-studio.md` after a direction or rule is accepted. Record only durable decisions, rejected approaches, current gaps, and recent outcomes. Do not create this file for a one-off critique or record speculative observations as decisions.
 
 Read [project-state.md](references/project-state.md) completely before creating or materially updating this state file.
 

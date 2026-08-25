@@ -1,10 +1,9 @@
 ---
 name: design-system
 description: Audit, capture, document, validate, or extend a design system. Use when checking token or component consistency, creating or updating a project-level DESIGN.md, documenting component variants and states, validating design documentation against implementation, or designing a new pattern that must fit an existing visual language.
-argument-hint: "[audit | capture | document | extend | validate] [target]"
 ---
 
-# /design-skills:design-system
+# Design System
 
 > For optional connector placeholders and fallback behavior, see [CONNECTORS.md](../../CONNECTORS.md).
 
@@ -13,14 +12,14 @@ Manage a design system from evidence to an agent-readable contract.
 ## Usage
 
 ```text
-/design-skills:design-system audit [scope]
-/design-skills:design-system capture [source or output path]
-/design-skills:design-system document [component]
-/design-skills:design-system extend [pattern]
-/design-skills:design-system validate [DESIGN.md path]
+$design-system audit [scope]
+$design-system capture [source or output path]
+$design-system document [component]
+$design-system extend [pattern]
+$design-system validate [DESIGN.md path]
 ```
 
-Work on: $ARGUMENTS
+Work on: the current request
 
 ## Operating Rules
 
@@ -88,7 +87,7 @@ For an update, preserve verified project-specific decisions and change only clai
 After writing, run:
 
 ```text
-node "${CLAUDE_SKILL_DIR}/scripts/validate-design-md.mjs" DESIGN.md
+node "<design-system-skill-directory>/scripts/validate-design-md.mjs" DESIGN.md
 ```
 
 Fix every error. Treat warnings as review items and explain any intentionally retained warning.

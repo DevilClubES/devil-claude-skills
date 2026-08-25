@@ -1,0 +1,6 @@
+interface:
+  display_name: "Research Synthesis"
+  short_description: "Synthesize research into prioritized insights"
+  default_prompt: "Use $research-synthesis to turn this research evidence into prioritized insights."
+policy:
+  allow_implicit_invocation: true

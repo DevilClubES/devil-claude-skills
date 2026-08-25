@@ -1,0 +1,6 @@
+interface:
+  display_name: "Design Critique"
+  short_description: "Review a design with evidence-backed feedback"
+  default_prompt: "Use $design-critique to review this design and prioritize the strongest improvements."
+policy:
+  allow_implicit_invocation: true

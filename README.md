@@ -1,59 +1,53 @@
-# devil-claude-skills
+# Devil Design Skills
 
-Curated marketplace of Claude Code skills used at [Devil Club](https://devil.club).
+Curated, evidence-driven design workflows used at [Devil Club](https://devil.club). Release `1.2.0` provides one reviewed source for Claude Code plus a deterministic Codex adapter, so the two runtimes do not drift through hand edits.
 
-## Plugins
+## Skills
 
-### `design-skills`
-
-Eight standalone skills for end-to-end product design, UX, accessibility, and research work:
-
-| Skill | Use it for |
+| Skill | Primary job |
 |---|---|
-| `/design-skills:design-studio` | Explore, build, refine, tweak, critique, and verify production UI |
-| `/design-skills:design-critique` | Structured feedback on usability, hierarchy, consistency |
-| `/design-skills:design-system` | Audit, capture, validate, document, or extend a design system and its `DESIGN.md` |
-| `/design-skills:design-handoff` | Generate developer handoff specs from a design |
-| `/design-skills:accessibility-review` | WCAG 2.1 AA audit of a design or page |
-| `/design-skills:ux-copy` | Write or review microcopy, error messages, empty states, CTAs |
-| `/design-skills:user-research` | Plan, conduct, and synthesize user research |
-| `/design-skills:research-synthesis` | Synthesize interview/survey/test results into themes |
+| `design-studio` | Explore, build, refine, tweak, critique, and verify production UI |
+| `design-critique` | Give evidence-backed feedback and a readiness verdict |
+| `design-system` | Audit, capture, validate, document, or extend `DESIGN.md` |
+| `design-handoff` | Produce an engineering handoff from a design |
+| `accessibility-review` | Run a WCAG 2.1 AA design or page audit |
+| `ux-copy` | Write or review interface copy |
+| `user-research` | Plan and conduct user research |
+| `research-synthesis` | Turn research evidence into themes and recommendations |
+| `landing-page-design` | Design and verify a conversion-focused landing page |
+| `interface-review` | Review an implementation and its blast radius without editing |
+| `variant` | Build three isolated variants and pause for selection |
+| `component-stress-test` | Exercise a component across content, state, and viewport extremes |
 
-## Install
+`interface-review`, `variant`, and `component-stress-test` are explicit-only workflows. They do not run merely because a request resembles their domain.
 
-In any Claude Code session:
+## Install for Claude Code
 
-```
+In Claude Code:
+
+```text
 /plugin marketplace add DevilClubES/devil-claude-skills
 /plugin install design-skills@devil-claude-skills
 ```
 
-The eight skills are then available under the `/design-skills:` namespace. If they do not appear immediately, run `/reload-plugins` or restart Claude Code.
+The skills are available under `/design-skills:`. After an update, run `/reload-plugins` or restart Claude Code.
 
-## Update
+## Install for Codex
 
-```
-/plugin update design-skills@devil-claude-skills
-```
+The repo-local Codex marketplace is at `.agents/plugins/marketplace.json` and exposes `design-skills-codex`. Clone or open this repository in Codex, then install that plugin from the repository marketplace. The generated package lives at `plugins/design-skills-codex`.
 
-Restart Claude Code after an update so the refreshed plugin cache is loaded.
+Do not edit the generated Codex package directly. Change `plugins/design-skills`, then run:
 
-## DESIGN.md workflow
-
-The design-system skill can turn an existing implementation, design source, or reference site into a project-owned `DESIGN.md`:
-
-```text
-/design-skills:design-system capture
-/design-skills:design-system validate DESIGN.md
+```powershell
+node scripts/sync-codex-package.mjs
+node scripts/sync-codex-package.mjs --check
 ```
 
-It records semantic tokens, component states, responsive behavior, accessibility rules, implementation evidence, and known gaps without copying another brand's protected assets or identity.
+The adapter removes Claude-only frontmatter, translates invocation examples and state paths, and writes Codex `agents/openai.yaml` metadata while preserving the same substantive instructions and references.
 
-This workflow adapts the strongest structural ideas from [VoltAgent/awesome-design-md](https://github.com/VoltAgent/awesome-design-md) and adds project evidence, implementation mapping, progressive disclosure, and deterministic validation for production use.
+## Core workflow
 
-## Design Studio workflow
-
-The design-studio skill connects the design-system, critique, accessibility, copy, and handoff skills into a bounded production workflow:
+The design studio connects the system, critique, accessibility, copy, and handoff skills into a bounded production loop:
 
 ```text
 /design-skills:design-studio explore <brief>
@@ -63,8 +57,31 @@ The design-studio skill connects the design-system, critique, accessibility, cop
 /design-skills:design-studio ship <artifact>
 ```
 
-It requires rendered evidence, mobile and desktop inspection, explicit interaction states, a five-lens readiness jury, and at most three refinement rounds. The direction-convergence, bounded critique-loop, project-state, and selected anti-slop mechanisms are independently adapted from [nexu-io/open-design](https://github.com/nexu-io/open-design) at commit `c9bd2c6628506fd79822397c9abe2036b9bc4a55`; no Open Design code, assets, templates, or design systems are vendored.
+It classifies existing work as extension, preservation-led redesign, or overhaul; calibrates five design dials; records reference provenance; inspects rendered mobile and desktop states; and runs a five-lens readiness jury. `ship` is a readiness check, not permission to merge, deploy, or publish.
 
-## License
+The design-system skill can capture and validate a project-owned `DESIGN.md`:
 
-The skill content is provided as-is for personal and commercial use. No warranty.
+```text
+/design-skills:design-system capture
+/design-skills:design-system validate DESIGN.md
+```
+
+## Repository checks
+
+Run all deterministic checks before proposing a release:
+
+```powershell
+node scripts/lint-skills.mjs
+node scripts/sync-codex-package.mjs --check
+node scripts/test-tooling.mjs
+```
+
+`scripts/verify-runtime-sync.ps1` can also compare a checkout with optional local Claude, local Codex, and VPS plugin roots. It is read-only and never installs or updates a runtime.
+
+Tags matching `v*` build separate Claude and Codex ZIP files plus SHA-256 checksum files. Creating a tag or release remains a separate maintainer action.
+
+## Design principles and provenance
+
+This collection selectively adapts reusable mechanisms from the projects listed in [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md). It does not bulk-import their skill catalogs, assets, visual systems, examples, or brand identity. The retained mechanisms include calibrated design direction, purpose-led motion, originality checks, blast-radius review, isolated variants, deterministic contrast checks, and agent-readable contracts.
+
+See [LICENSE](LICENSE) for this repository's MIT license and [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md) for source repositories, pinned commits, licenses, and adaptation boundaries.

@@ -1,0 +1,6 @@
+interface:
+  display_name: "UX Copy"
+  short_description: "Write clear, contextual interface copy"
+  default_prompt: "Use $ux-copy to write clear interface copy for this user state."
+policy:
+  allow_implicit_invocation: true
