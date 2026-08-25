@@ -1,10 +1,9 @@
 ---
 name: design-critique
 description: Review a design through structured UX, visual-craft, brand/system, accessibility/content, and implementation lenses. Use for "review this design", "critique this mockup", "what do you think of this screen?", design comparisons, pre-handoff feedback, or an evidence-backed ready/revise/blocked verdict from a Figma link, screenshot, artifact, or running page.
-argument-hint: "<design, context, and optional focus>"
 ---
 
-# /design-skills:design-critique
+# Design Critique
 
 > For optional connector placeholders and fallback behavior, see [CONNECTORS.md](../../CONNECTORS.md).
 
@@ -13,7 +12,7 @@ Give direct, stage-appropriate feedback grounded in the visible artifact and its
 ## Usage
 
 ```text
-/design-skills:design-critique $ARGUMENTS
+$design-critique the current request
 ```
 
 If a design URL is provided, inspect the linked surface with an available connector or browser. If a file is referenced, read or render it. If no reviewable artifact is available, ask the user to share one or explicitly limit the critique to the supplied description.

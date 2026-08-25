@@ -1,0 +1,6 @@
+interface:
+  display_name: "Design Handoff"
+  short_description: "Turn a design into an engineering-ready spec"
+  default_prompt: "Use $design-handoff to turn this design into an engineering-ready specification."
+policy:
+  allow_implicit_invocation: true

@@ -1,0 +1,6 @@
+interface:
+  display_name: "Landing Page Design"
+  short_description: "Design a truthful conversion-focused landing page"
+  default_prompt: "Use $landing-page-design to design and verify this conversion-focused landing page."
+policy:
+  allow_implicit_invocation: true

@@ -1,0 +1,6 @@
+interface:
+  display_name: "Interface Review"
+  short_description: "Review interface changes and blast radius"
+  default_prompt: "Use $interface-review to review this interface change and its blast radius without editing files."
+policy:
+  allow_implicit_invocation: false

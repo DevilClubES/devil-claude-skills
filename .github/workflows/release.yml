@@ -1,0 +1,38 @@
+name: Package release
+
+on:
+  push:
+    tags:
+      - "v*"
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Validate release source
+        run: |
+          node scripts/lint-skills.mjs
+          node scripts/sync-codex-package.mjs --check
+          node scripts/test-tooling.mjs
+      - name: Build runtime archives and checksums
+        run: |
+          mkdir -p dist/package-claude dist/package-codex
+          cp -R plugins/design-skills/. dist/package-claude/
+          cp -R plugins/design-skills-codex/. dist/package-codex/
+          cp LICENSE THIRD_PARTY_NOTICES.md dist/package-claude/
+          cp LICENSE THIRD_PARTY_NOTICES.md dist/package-codex/
+          (cd dist/package-claude && zip -qr ../design-skills-claude-${GITHUB_REF_NAME}.zip .)
+          (cd dist/package-codex && zip -qr ../design-skills-codex-${GITHUB_REF_NAME}.zip .)
+          rm -rf dist/package-claude dist/package-codex
+          (cd dist && sha256sum *.zip > SHA256SUMS.txt)
+      - name: Create GitHub release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh release create "$GITHUB_REF_NAME" dist/* --verify-tag --generate-notes

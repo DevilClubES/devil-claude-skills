@@ -1,0 +1,6 @@
+interface:
+  display_name: "Design Studio"
+  short_description: "Run a brief-to-verified-interface design loop"
+  default_prompt: "Use $design-studio to turn this brief into a visually verified interface."
+policy:
+  allow_implicit_invocation: true

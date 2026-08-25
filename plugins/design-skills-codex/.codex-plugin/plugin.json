@@ -1,0 +1,40 @@
+{
+  "name": "design-skills-codex",
+  "version": "1.2.0",
+  "description": "Twelve evidence-driven design, UX, accessibility, research, and interface-verification skills for Codex.",
+  "author": {
+    "name": "Devil Club",
+    "email": "edgar.ondono@gmail.com",
+    "url": "https://github.com/DevilClubES"
+  },
+  "homepage": "https://github.com/DevilClubES/devil-claude-skills",
+  "repository": "https://github.com/DevilClubES/devil-claude-skills",
+  "license": "MIT",
+  "keywords": [
+    "design",
+    "ux",
+    "accessibility",
+    "research",
+    "codex"
+  ],
+  "skills": "./skills/",
+  "interface": {
+    "displayName": "Devil Design Skills",
+    "shortDescription": "Evidence-driven product design workflows for Codex",
+    "longDescription": "Design, review, stress-test, document, and hand off digital interfaces with rendered evidence, explicit scope boundaries, and deterministic checks.",
+    "developerName": "Devil Club",
+    "category": "Developer Tools",
+    "capabilities": [
+      "Design",
+      "Write",
+      "Interactive"
+    ],
+    "websiteURL": "https://devil.club/",
+    "defaultPrompt": [
+      "Build and verify this interface from the brief.",
+      "Review this design and prioritize improvements.",
+      "Capture this project's design system."
+    ],
+    "brandColor": "#7C3AED"
+  }
+}
