@@ -1,0 +1,595 @@
+name: CATTLE repository on-demand
+run-name: 'Cattle consumer ${{ inputs.profile }} subject ${{ inputs.target_sha }} slot ${{ inputs.slot }}'
+
+on:
+  push:
+    branches: [codex/cattle-on-demand]
+    paths: [.github/workflows/cattle-on-demand.yml]
+  workflow_dispatch:
+    inputs:
+      target_sha:
+        description: Immutable subject commit in this repository
+        required: true
+        type: string
+      base_sha:
+        description: Immutable baseline commit; never resolved again during the job
+        required: true
+        type: string
+      profile:
+        description: Audited bank or infrastructure canary
+        required: true
+        type: choice
+        options: [canary, ci, okf, copy-review, design-tokens, env-secrets, error-leak, fetch-timeout, i18n-email, limit-orden, tests-diff, tsc-diff]
+      slot:
+        description: Disposable physical slot; only one active in the shared family
+        required: true
+        type: choice
+        options: ['01', '02', '03']
+
+permissions:
+  contents: read
+
+concurrency:
+  group: cattle-consumer-${{ github.repository }}-${{ inputs.slot }}
+  cancel-in-progress: false
+
+jobs:
+  gate:
+    if: github.event_name == 'workflow_dispatch'
+    runs-on: [cattle, kvm, dos-cattle-r18, 'dos-cattle-repo-${{ github.event.repository.name }}', 'dos-cattle-slot-${{ inputs.slot }}']
+    timeout-minutes: 30
+    env:
+      TARGET_SHA: ${{ inputs.target_sha }}
+      BASE_SHA: ${{ inputs.base_sha }}
+      HEAD_SHA: ${{ inputs.target_sha }}
+      TEST_PROFILE: ${{ inputs.profile }}
+      WORKFLOW_SOURCE_SHA: ${{ github.workflow_sha }}
+    steps:
+      - name: Preventive admission before fetching candidate code
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          import json, os, re
+          allowed = json.loads(r'''
+          {
+            "DevilClubES/devil-club": [
+              "canary",
+              "copy-review",
+              "design-tokens",
+              "env-secrets",
+              "error-leak",
+              "fetch-timeout",
+              "i18n-email",
+              "limit-orden",
+              "tests-diff",
+              "tsc-diff"
+            ],
+            "DevilClubES/yvypy": [
+              "canary",
+              "ci",
+              "okf"
+            ],
+            "DevilClubES/ojopy": [
+              "canary",
+              "okf"
+            ],
+            "DevilClubES/kaggriculture-r4-lab": [
+              "canary"
+            ],
+            "DevilClubES/devil-sol-bridge": [
+              "canary"
+            ],
+            "DevilClubES/testing": [
+              "canary"
+            ],
+            "DevilClubES/codex-suggestion-inbox": [
+              "canary"
+            ],
+            "DevilClubES/devil-claude-skills": [
+              "canary"
+            ],
+            "DevilClubES/roast-arena": [
+              "canary"
+            ],
+            "DevilClubES/brandforge": [
+              "canary"
+            ],
+            "DevilClubES/puntos-justos": [
+              "canary"
+            ],
+            "DevilClubES/favor-farm": [
+              "canary"
+            ],
+            "DevilClubES/inv-devil-club": [
+              "canary"
+            ],
+            "DevilClubES/devil-club-tiktok-automation": [
+              "canary"
+            ],
+            "DevilClubES/tradelab": [
+              "canary"
+            ]
+          }
+          ''')
+          assert os.environ['GITHUB_REPOSITORY'] in allowed, 'repository not admitted'
+          assert os.environ['TEST_PROFILE'] in allowed[os.environ['GITHUB_REPOSITORY']], 'bank not admitted for repository'
+          assert all(re.fullmatch('[0-9a-f]{40}', os.environ[key]) for key in ['TARGET_SHA', 'BASE_SHA'])
+          for key in ['GH_READ_TOKEN', 'OPENROUTER_API_KEY', 'DATABASE_URL', 'DOS_CI_ATTESTATION_KEY']:
+              assert not os.environ.get(key), 'candidate authority must be absent'
+          PY
+          /usr/local/bin/cattle-isolation
+          test "$(systemd-detect-virt)" = kvm
+          test "$(node --version)" = v20.20.0
+          test "$(/usr/bin/node --version)" = v22.23.3
+          test "$(git --version)" = 'git version 2.55.0'
+          test -z "$(pg_lsclusters --no-header)"
+          fixture_cluster=$(mktemp -d "$RUNNER_TEMP/cattle-consumer-pg-XXXXXX")
+          /usr/lib/postgresql/17/bin/initdb -D "$fixture_cluster" --no-locale --encoding=UTF8 --auth-local=trust --auth-host=reject >/dev/null
+          case "$fixture_cluster" in "$RUNNER_TEMP"/cattle-consumer-pg-*) rm -rf -- "$fixture_cluster" ;; *) exit 1 ;; esac
+          echo CATTLE_CONSUMER_ADMISSION_PASS
+
+      - name: Fetch exact subject and baseline with own-repository read-only authority
+        id: fetch
+        shell: bash
+        env:
+          GH_READ_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          mkdir source
+          git -C source init
+          git -C source remote add origin "https://github.com/$GITHUB_REPOSITORY.git"
+          export GIT_CONFIG_COUNT=1
+          export GIT_CONFIG_KEY_0=http.https://github.com/.extraheader
+          export GIT_CONFIG_VALUE_0="AUTHORIZATION: basic $(printf 'x-access-token:%s' "$GH_READ_TOKEN" | base64 -w0)"
+          git -C source fetch --no-tags origin "$TARGET_SHA" "$BASE_SHA"
+          unset GIT_CONFIG_COUNT GIT_CONFIG_KEY_0 GIT_CONFIG_VALUE_0 GH_READ_TOKEN
+          git -C source checkout --detach "$TARGET_SHA"
+          test "$(git -C source rev-parse HEAD)" = "$TARGET_SHA"
+          test "$(git -C source rev-parse "$BASE_SHA^{commit}")" = "$BASE_SHA"
+          echo "EXECUTED_SUBJECT_SHA=$(git -C source rev-parse HEAD)"
+          echo "EXECUTED_SUBJECT_TREE=$(git -C source rev-parse HEAD^{tree})"
+          echo "EXECUTED_BASE_SHA=$BASE_SHA"
+
+      - name: Run the admitted bank with no production credentials
+        id: bank
+        working-directory: source
+        shell: bash
+        run: |
+          set -euo pipefail
+          cat > "$RUNNER_TEMP/cattle-consumer-canary.test.cjs" <<'JS'
+          const assert = require('node:assert/strict');
+          const { test } = require('node:test');
+          const { execFileSync } = require('node:child_process');
+          test('pinned toolchain serves the disposable guest', () => {
+            assert.equal(process.version, 'v20.20.0');
+            assert.equal(execFileSync('/usr/bin/node', ['--version'], {encoding:'utf8'}).trim(), 'v22.23.3');
+            assert.equal(execFileSync('git', ['--version'], {encoding:'utf8'}).trim(), 'git version 2.55.0');
+          });
+          test('candidate runs unprivileged without inherited fetch or product authority', () => {
+            assert.notEqual(process.getuid(), 0);
+            for (const key of ['GH_READ_TOKEN','GIT_CONFIG_VALUE_0','OPENROUTER_API_KEY','DATABASE_URL','DOS_CI_ATTESTATION_KEY']) assert.ok(!process.env[key], key);
+          });
+          test('subject is immutable and no HTTP authorization persisted in Git config', () => {
+            assert.equal(execFileSync('git', ['rev-parse','HEAD'], {encoding:'utf8'}).trim(), process.env.TARGET_SHA);
+            assert.equal(execFileSync('git', ['config','--local','--list'], {encoding:'utf8'}).includes('extraheader='), false);
+          });
+          process.on('exit', code => { if (code === 0) console.log('CATTLE_CONSUMER_CANARY_PASS'); });
+          JS
+          python3 - <<'PY'
+          import hashlib, json, os, pathlib, subprocess, sys, time
+          profiles = json.loads(r'''
+          {
+            "DevilClubES/devil-club": {
+              "canary": {
+                "authority": "INFRASTRUCTURE_ONLY",
+                "required_paths": [],
+                "commands": [
+                  "node --version",
+                  "node --test \"$RUNNER_TEMP/cattle-consumer-canary.test.cjs\""
+                ],
+                "environment": {},
+                "product_tests": "NOT_RUN"
+              },
+              "copy-review": {
+                "authority": "TEST_EVIDENCE_ONLY",
+                "required_paths": [
+                  "scripts/copy-review-lint.mjs"
+                ],
+                "commands": [
+                  "node scripts/copy-review-lint.mjs --diff \"$BASE_SHA\" \"$HEAD_SHA\""
+                ],
+                "environment": {},
+                "product_tests": "BANK_RESULT_PENDING"
+              },
+              "design-tokens": {
+                "authority": "TEST_EVIDENCE_ONLY",
+                "required_paths": [
+                  "scripts/design-tokens-lint.mjs"
+                ],
+                "commands": [
+                  "node scripts/design-tokens-lint.mjs --diff \"$BASE_SHA\" \"$HEAD_SHA\""
+                ],
+                "environment": {},
+                "product_tests": "BANK_RESULT_PENDING"
+              },
+              "env-secrets": {
+                "authority": "TEST_EVIDENCE_ONLY",
+                "required_paths": [
+                  "package.json",
+                  "scripts/audit-env-secrets.mjs"
+                ],
+                "commands": [
+                  "npm install --no-save typescript@5.9.3",
+                  "node scripts/audit-env-secrets.mjs --enforce"
+                ],
+                "environment": {},
+                "product_tests": "BANK_RESULT_PENDING"
+              },
+              "error-leak": {
+                "authority": "TEST_EVIDENCE_ONLY",
+                "required_paths": [
+                  "scripts/check-error-leak.mjs"
+                ],
+                "commands": [
+                  "node scripts/check-error-leak.mjs --diff \"$BASE_SHA\" \"$HEAD_SHA\""
+                ],
+                "environment": {},
+                "product_tests": "BANK_RESULT_PENDING"
+              },
+              "fetch-timeout": {
+                "authority": "TEST_EVIDENCE_ONLY",
+                "required_paths": [
+                  "scripts/fetch-timeout-lint.mjs"
+                ],
+                "commands": [
+                  "node scripts/fetch-timeout-lint.mjs --diff \"$BASE_SHA\" \"$HEAD_SHA\""
+                ],
+                "environment": {},
+                "product_tests": "BANK_RESULT_PENDING"
+              },
+              "i18n-email": {
+                "authority": "TEST_EVIDENCE_ONLY",
+                "required_paths": [
+                  "package.json",
+                  "scripts/i18n-email-gate.mjs"
+                ],
+                "commands": [
+                  "npm install --no-save typescript@5.9.3",
+                  "node scripts/i18n-email-gate.mjs"
+                ],
+                "environment": {},
+                "product_tests": "BANK_RESULT_PENDING"
+              },
+              "limit-orden": {
+                "authority": "TEST_EVIDENCE_ONLY",
+                "required_paths": [
+                  "scripts/limit-sin-orden-total-lint.mjs"
+                ],
+                "commands": [
+                  "node scripts/limit-sin-orden-total-lint.mjs --diff \"$BASE_SHA\" \"$HEAD_SHA\""
+                ],
+                "environment": {},
+                "product_tests": "BANK_RESULT_PENDING"
+              },
+              "tests-diff": {
+                "authority": "TEST_EVIDENCE_ONLY",
+                "required_paths": [
+                  "package.json",
+                  "package-lock.json",
+                  "scripts/tests-diff-gate.mjs",
+                  "scripts/lib/tests-del-runner.mjs"
+                ],
+                "commands": [
+                  "npm ci --prefer-offline --no-audit --no-fund",
+                  "node scripts/tests-diff-gate.mjs --diff \"$BASE_SHA\" \"$HEAD_SHA\""
+                ],
+                "environment": {
+                  "NODE_OPTIONS": "--max-old-space-size=4096"
+                },
+                "product_tests": "BANK_RESULT_PENDING"
+              },
+              "tsc-diff": {
+                "authority": "TEST_EVIDENCE_ONLY",
+                "required_paths": [
+                  "package.json",
+                  "package-lock.json",
+                  "scripts/check-parseo.mjs",
+                  "scripts/__tests__/check-parseo-esbuild.test.mjs",
+                  "scripts/tsc-diff-gate.mjs"
+                ],
+                "commands": [
+                  "npm ci --prefer-offline --no-audit --no-fund",
+                  "node scripts/check-parseo.mjs",
+                  "node --test scripts/__tests__/check-parseo-esbuild.test.mjs",
+                  "destino=\"$RUNNER_TEMP/tsc-native\"\nif npm install --prefix \"$destino\" --no-save --no-audit --no-fund typescript@7.0.2; then\n  binario=\"$destino/node_modules/.bin/tsc\"\n  if [ -x \"$binario\" ] && \"$binario\" --version; then\n    export TSC_BIN=\"$binario\"\n    echo \"gate: usando el compilador nativo en $binario\"\n  else\n    echo \"gate: el binario nativo no ejecuta; sigo con el tsc del lock\"\n  fi\nelse\n  echo \"gate: no pude instalar typescript@7.0.2; sigo con el tsc del lock\"\nfi",
+                  "node scripts/tsc-diff-gate.mjs --diff \"$BASE_SHA\" \"$HEAD_SHA\""
+                ],
+                "environment": {
+                  "NODE_OPTIONS": "--max-old-space-size=4096"
+                },
+                "product_tests": "BANK_RESULT_PENDING"
+              }
+            },
+            "DevilClubES/yvypy": {
+              "canary": {
+                "authority": "INFRASTRUCTURE_ONLY",
+                "required_paths": [],
+                "commands": [
+                  "node --version",
+                  "node --test \"$RUNNER_TEMP/cattle-consumer-canary.test.cjs\""
+                ],
+                "environment": {},
+                "product_tests": "NOT_RUN"
+              },
+              "ci": {
+                "authority": "TEST_EVIDENCE_ONLY",
+                "required_paths": [
+                  "package.json",
+                  "package-lock.json",
+                  "tsconfig.json",
+                  "src/lib/__tests__/*.test.ts",
+                  "scripts/seo/operations.test.mjs",
+                  "scripts/seo/city-dataset-jsonld.test.mjs"
+                ],
+                "commands": [
+                  "npm ci",
+                  "npx tsc --noEmit",
+                  "npx tsx --test src/lib/__tests__/*.test.ts",
+                  "npm run test:seo-operations"
+                ],
+                "environment": {},
+                "product_tests": "BANK_RESULT_PENDING"
+              },
+              "okf": {
+                "authority": "TEST_EVIDENCE_ONLY",
+                "required_paths": [
+                  "package.json",
+                  "package-lock.json",
+                  "scripts/okf/generate.mjs",
+                  "scripts/okf/validate.mjs",
+                  "scripts/okf/okf.test.mjs"
+                ],
+                "commands": [
+                  "npm ci",
+                  "npm run okf:check",
+                  "npm run test:okf",
+                  "npm run typecheck"
+                ],
+                "environment": {},
+                "product_tests": "BANK_RESULT_PENDING"
+              }
+            },
+            "DevilClubES/ojopy": {
+              "canary": {
+                "authority": "INFRASTRUCTURE_ONLY",
+                "required_paths": [],
+                "commands": [
+                  "node --version",
+                  "node --test \"$RUNNER_TEMP/cattle-consumer-canary.test.cjs\""
+                ],
+                "environment": {},
+                "product_tests": "NOT_RUN"
+              },
+              "okf": {
+                "authority": "TEST_EVIDENCE_ONLY",
+                "required_paths": [
+                  "package.json",
+                  "package-lock.json",
+                  "scripts/okf/generate.mjs",
+                  "scripts/okf/validate.mjs",
+                  "scripts/okf/okf.test.mjs"
+                ],
+                "commands": [
+                  "npm ci",
+                  "npm run okf:check",
+                  "npm run test:okf"
+                ],
+                "environment": {},
+                "product_tests": "BANK_RESULT_PENDING"
+              }
+            },
+            "DevilClubES/kaggriculture-r4-lab": {
+              "canary": {
+                "authority": "INFRASTRUCTURE_ONLY",
+                "required_paths": [],
+                "commands": [
+                  "node --version",
+                  "node --test \"$RUNNER_TEMP/cattle-consumer-canary.test.cjs\""
+                ],
+                "environment": {},
+                "product_tests": "NOT_RUN"
+              }
+            },
+            "DevilClubES/devil-sol-bridge": {
+              "canary": {
+                "authority": "INFRASTRUCTURE_ONLY",
+                "required_paths": [],
+                "commands": [
+                  "node --version",
+                  "node --test \"$RUNNER_TEMP/cattle-consumer-canary.test.cjs\""
+                ],
+                "environment": {},
+                "product_tests": "NOT_RUN"
+              }
+            },
+            "DevilClubES/testing": {
+              "canary": {
+                "authority": "INFRASTRUCTURE_ONLY",
+                "required_paths": [],
+                "commands": [
+                  "node --version",
+                  "node --test \"$RUNNER_TEMP/cattle-consumer-canary.test.cjs\""
+                ],
+                "environment": {},
+                "product_tests": "NOT_RUN"
+              }
+            },
+            "DevilClubES/codex-suggestion-inbox": {
+              "canary": {
+                "authority": "INFRASTRUCTURE_ONLY",
+                "required_paths": [],
+                "commands": [
+                  "node --version",
+                  "node --test \"$RUNNER_TEMP/cattle-consumer-canary.test.cjs\""
+                ],
+                "environment": {},
+                "product_tests": "NOT_RUN"
+              }
+            },
+            "DevilClubES/devil-claude-skills": {
+              "canary": {
+                "authority": "INFRASTRUCTURE_ONLY",
+                "required_paths": [],
+                "commands": [
+                  "node --version",
+                  "node --test \"$RUNNER_TEMP/cattle-consumer-canary.test.cjs\""
+                ],
+                "environment": {},
+                "product_tests": "NOT_RUN"
+              }
+            },
+            "DevilClubES/roast-arena": {
+              "canary": {
+                "authority": "INFRASTRUCTURE_ONLY",
+                "required_paths": [],
+                "commands": [
+                  "node --version",
+                  "node --test \"$RUNNER_TEMP/cattle-consumer-canary.test.cjs\""
+                ],
+                "environment": {},
+                "product_tests": "NOT_RUN"
+              }
+            },
+            "DevilClubES/brandforge": {
+              "canary": {
+                "authority": "INFRASTRUCTURE_ONLY",
+                "required_paths": [],
+                "commands": [
+                  "node --version",
+                  "node --test \"$RUNNER_TEMP/cattle-consumer-canary.test.cjs\""
+                ],
+                "environment": {},
+                "product_tests": "NOT_RUN"
+              }
+            },
+            "DevilClubES/puntos-justos": {
+              "canary": {
+                "authority": "INFRASTRUCTURE_ONLY",
+                "required_paths": [],
+                "commands": [
+                  "node --version",
+                  "node --test \"$RUNNER_TEMP/cattle-consumer-canary.test.cjs\""
+                ],
+                "environment": {},
+                "product_tests": "NOT_RUN"
+              }
+            },
+            "DevilClubES/favor-farm": {
+              "canary": {
+                "authority": "INFRASTRUCTURE_ONLY",
+                "required_paths": [],
+                "commands": [
+                  "node --version",
+                  "node --test \"$RUNNER_TEMP/cattle-consumer-canary.test.cjs\""
+                ],
+                "environment": {},
+                "product_tests": "NOT_RUN"
+              }
+            },
+            "DevilClubES/inv-devil-club": {
+              "canary": {
+                "authority": "INFRASTRUCTURE_ONLY",
+                "required_paths": [],
+                "commands": [
+                  "node --version",
+                  "node --test \"$RUNNER_TEMP/cattle-consumer-canary.test.cjs\""
+                ],
+                "environment": {},
+                "product_tests": "NOT_RUN"
+              }
+            },
+            "DevilClubES/devil-club-tiktok-automation": {
+              "canary": {
+                "authority": "INFRASTRUCTURE_ONLY",
+                "required_paths": [],
+                "commands": [
+                  "node --version",
+                  "node --test \"$RUNNER_TEMP/cattle-consumer-canary.test.cjs\""
+                ],
+                "environment": {},
+                "product_tests": "NOT_RUN"
+              }
+            },
+            "DevilClubES/tradelab": {
+              "canary": {
+                "authority": "INFRASTRUCTURE_ONLY",
+                "required_paths": [],
+                "commands": [
+                  "node --version",
+                  "node --test \"$RUNNER_TEMP/cattle-consumer-canary.test.cjs\""
+                ],
+                "environment": {},
+                "product_tests": "NOT_RUN"
+              }
+            }
+          }
+          ''')
+          repo, profile = os.environ['GITHUB_REPOSITORY'], os.environ['TEST_PROFILE']
+          spec = profiles[repo][profile]
+          for key in ['GH_READ_TOKEN', 'GIT_CONFIG_VALUE_0', 'OPENROUTER_API_KEY', 'DATABASE_URL', 'DOS_CI_ATTESTATION_KEY']:
+              assert not os.environ.get(key), 'credential boundary not cleared'
+          env = dict(os.environ, **spec['environment'])
+          env.update(GIT_TERMINAL_PROMPT='0', GIT_CONFIG_GLOBAL='/dev/null', GIT_CONFIG_NOSYSTEM='1')
+          log = pathlib.Path(os.environ['RUNNER_TEMP']) / 'cattle-consumer-bank.log'
+          receipt = pathlib.Path(os.environ['RUNNER_TEMP']) / 'cattle-consumer-receipt.json'
+          def git(*args):
+              return subprocess.check_output(['git', *args], text=True).strip()
+          result = {'schema':'dos.cattle.consumer-result.v1', 'repository':repo, 'profile':profile,
+                    'authority':spec['authority'], 'product_tests':spec['product_tests'],
+                    'source_sha':os.environ['WORKFLOW_SOURCE_SHA'], 'subject_sha':git('rev-parse','HEAD'),
+                    'subject_tree':git('rev-parse','HEAD^{tree}'), 'base_sha':os.environ['BASE_SHA'],
+                    'base_tree':git('rev-parse',os.environ['BASE_SHA']+'^{tree}'),
+                    'runner_name':os.environ['RUNNER_NAME'], 'run_id':os.environ['GITHUB_RUN_ID'],
+                    'native_admission':'NOT_ATTESTED', 'merge_deploy_publication':'NOT_RUN', 'commands':[]}
+          failure = 0
+          started = time.monotonic()
+          result['commands'] = [{'command_sha256':hashlib.sha256(command.encode()).hexdigest(), 'state':'NOT_RUN'} for command in spec['commands']]
+          missing = [pattern for pattern in spec['required_paths'] if not list(pathlib.Path('.').glob(pattern))]
+          with log.open('w') as output:
+              if missing:
+                  failure = 1
+                  result['missing_inputs'] = missing
+                  output.write('BANK_ADMISSION_REJECTED: missing immutable inputs\n')
+                  print('BANK_ADMISSION_REJECTED: missing immutable inputs')
+              else:
+                  # The recipe retains intentional exports such as TSC_BIN.
+                  # Candidate stdout is diagnostic data, never per-command proof.
+                  script = '\n'.join(spec['commands'])
+                  result['recipe_sha256'] = hashlib.sha256(script.encode()).hexdigest()
+                  proc = subprocess.Popen(['bash','-euo','pipefail','-c',script], env=env,
+                                          stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True)
+                  for line in proc.stdout:
+                      output.write(line); output.flush(); sys.stdout.write(line); sys.stdout.flush()
+                  failure = proc.wait()
+                  result['recipe_exit_code'] = failure
+                  for entry in result['commands']:
+                      entry['state'] = 'NOT_ATTESTED_INDIVIDUALLY'
+          result.update(state='FAIL' if failure else 'PASS', duration_seconds=round(time.monotonic()-started,3),
+                        log_sha256=hashlib.sha256(log.read_bytes()).hexdigest())
+          if profile != 'canary': result['product_tests'] = 'BANK_FAIL' if failure else 'BANK_PASS'
+          receipt.write_text(json.dumps(result,indent=2)+'\n')
+          print('CATTLE_CONSUMER_RESULT=' + result['state'])
+          sys.exit(1 if failure else 0)
+          PY
+
+      - name: Preserve consumer receipt before ephemeral shutdown
+        if: ${{ !cancelled() && steps.fetch.conclusion == 'success' }}
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: cattle-consumer-${{ github.event.repository.name }}-${{ inputs.profile }}-${{ inputs.target_sha }}
+          retention-days: 14
+          if-no-files-found: error
+          path: |
+            ${{ runner.temp }}/cattle-consumer-receipt.json
+            ${{ runner.temp }}/cattle-consumer-bank.log
