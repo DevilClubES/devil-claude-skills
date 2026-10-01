@@ -3,7 +3,7 @@
 Repositorio: `DevilClubES/devil-claude-skills`. Estado de esta integración: **SOURCE_ONLY**.
 La presencia de esta rama y sus archivos no acredita instalación, un job ejecutado, pruebas de producto, merge ni despliegue.
 
-Fuente común DOS: `c5da6a0599ac5df236c1c2002fc6cb9a90014457`; workflow LF SHA-256: `0f10836547683c68a810f0a335fad2cca9bab588dbe78b16d3b3d9ab8b7f8013`.
+Fuente común DOS: `3ab8e777e634fd991213bc71ab6f5a129f4b11c9`; workflow LF SHA-256: `0f10836547683c68a810f0a335fad2cca9bab588dbe78b16d3b3d9ab8b7f8013`.
 Registro LF SHA-256: `dd3384b19700e55fa4ea00d58f8a89747204d406df3a07d2906faafc49616c7f`. Base auditada: `95014a0caf04f9232aefa07aa3dea1a77cd4189f` (`main`).
 
 ## Perfiles admitidos
@@ -23,7 +23,7 @@ GitHub y SSH privados permanecen en el desktop del controlador; no se heredan se
 
 ```powershell
 $ErrorActionPreference = 'Stop'
-$CattleSource = 'c5da6a0599ac5df236c1c2002fc6cb9a90014457'
+$CattleSource = '3ab8e777e634fd991213bc71ab6f5a129f4b11c9'
 $CattleHome = Join-Path 'D:\AI\Runtime\CATTLE' $CattleSource
 $paths = @(
     'ops/ci-runner/cattle/run-consumer.ps1',
